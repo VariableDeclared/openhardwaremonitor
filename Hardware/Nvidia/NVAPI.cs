@@ -11,7 +11,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
+using OpenHardwareMonitor.Hardware.Crypto;
 
 namespace OpenHardwareMonitor.Hardware.Nvidia {
 
@@ -456,8 +458,11 @@ namespace OpenHardwareMonitor.Hardware.Nvidia {
       attribute.CallingConvention = CallingConvention.Cdecl;
       attribute.PreserveSig = true;
       attribute.EntryPoint = "nvapi_QueryInterface";
+      if (!AuthenticodeTools.IsTrusted(@"C:\Windows\System32\nvapi64.dll"))
+        throw new SecurityException("Nvidia DLL not verified. Check your driver installation.");
+
       PInvokeDelegateFactory.CreateDelegate(attribute,
-        out nvapi_QueryInterface);
+        newDelegate: out nvapi_QueryInterface, dllImportSearchPath: DllImportSearchPath.System32);
 
       try {
         GetDelegate(0x0150E828, out NvAPI_Initialize);
